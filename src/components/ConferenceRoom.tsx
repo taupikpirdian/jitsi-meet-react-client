@@ -48,7 +48,10 @@ useEffect(() => {
     }
 
     const script = document.createElement("script");
-    script.src = "https://meet.jit.si/external_api.js";
+    const externalApiUrl =
+      import.meta.env.VITE_JITSI_EXTERNAL_API_URL ||
+      "https://meet.jit.si/external_api.js";
+    script.src = externalApiUrl;
     script.async = true;
     script.onload = () => initializeJitsi();
     document.head.appendChild(script);
@@ -61,8 +64,9 @@ useEffect(() => {
 
   const initializeJitsi = () => {
     if (jitsiContainerRef.current && window.JitsiMeetExternalAPI) {
-      const domain = "meet.ffmuc.net";
-      const options = {
+      const domain = import.meta.env.VITE_JITSI_DOMAIN;
+      const jwt = import.meta.env.VITE_JITSI_JWT;
+      const options: any = {
         roomName: roomId,
         width: "100%",
         height: "100%",
@@ -88,6 +92,11 @@ useEffect(() => {
           SHOW_WATERMARK_FOR_GUESTS: false,
         },
       };
+
+      // Tambahkan JWT bila tersedia (untuk deployment yang memerlukan token)
+      if (jwt) {
+        options.jwt = jwt;
+      }
 
       const jitsiApi = new window.JitsiMeetExternalAPI(domain, options);
       setApi(jitsiApi);

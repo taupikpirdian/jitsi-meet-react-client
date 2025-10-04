@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_JITSI_EXTERNAL_API_URL: ${VITE_JITSI_EXTERNAL_API_URL:-https://meet.jit.si/external_api.js}
+        VITE_JITSI_DOMAIN: ${VITE_JITSI_DOMAIN:-meet.ffmuc.net}
+        VITE_JITSI_JWT: ${VITE_JITSI_JWT:-}
+    ports:
+      - "6001:80"
+    restart: unless-stopped

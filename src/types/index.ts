@@ -1,9 +1,10 @@
 export interface User {
-  id: string;
-  username: string;
+  id: string | number;
+  username?: string;
   email: string;
   name: string;
-  avatar?: string;
+  avatar?: string | null;
+  isModerator?: boolean;
 }
 
 export interface Room {
@@ -19,7 +20,8 @@ export interface Room {
 
 export interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => Promise<boolean>;
+  token: string | null;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }

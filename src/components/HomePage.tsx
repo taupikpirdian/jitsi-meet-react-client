@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Video, Users, ArrowRight, Plus, UserCheck } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const HomePage: React.FC = () => {
   const [roomId, setRoomId] = useState('');
   const [userName, setUserName] = useState('');
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handleJoinRoom = (e: React.FormEvent, isModerator = false) => {
+  useEffect(() => {
+    if (user?.name) {
+      setUserName(user.name);
+    }
+  }, [user]);
+
+  const handleJoinRoom = (e: React.FormEvent) => {
     e.preventDefault();
     if (roomId.trim() && userName.trim()) {
-      const params = new URLSearchParams({
-        name: userName.trim(),
-        ...(isModerator && { moderator: 'true' })
-      });
+      const params = new URLSearchParams({ name: userName.trim() });
       navigate(`/room/${roomId.trim()}?${params.toString()}`);
     }
   };
@@ -24,10 +29,7 @@ const HomePage: React.FC = () => {
     if (userName.trim()) {
       const newRoomId = Math.random().toString(36).substring(2, 10);
       setRoomId(newRoomId);
-      const params = new URLSearchParams({
-        name: userName.trim(),
-        moderator: 'true'
-      });
+      const params = new URLSearchParams({ name: userName.trim() });
       navigate(`/room/${newRoomId}?${params.toString()}`);
     }
   };
@@ -128,7 +130,7 @@ const HomePage: React.FC = () => {
               {isCreatingRoom ? (
                 <>
                   <UserCheck className="w-5 h-5" />
-                  Create & Join as Moderator
+                  Create & Join
                 </>
               ) : (
                 <>
@@ -144,7 +146,7 @@ const HomePage: React.FC = () => {
         <div className="text-center mt-6 text-blue-200 text-sm">
           <p>
             {isCreatingRoom 
-              ? 'You will be the moderator and can approve participants' 
+              ? 'Room created. Your role in the meeting will follow your account permissions.' 
               : 'Share the same Room ID with others to join the same meeting'
             }
           </p>

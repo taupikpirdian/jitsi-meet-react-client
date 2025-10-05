@@ -12,6 +12,7 @@ import {
   Monitor,
   UserCheck,
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 declare global {
   interface Window {
@@ -28,9 +29,10 @@ const ConferenceRoom: React.FC = () => {
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isVideoMuted, setIsVideoMuted] = useState(false);
   const [participantCount, setParticipantCount] = useState(1);
+  const { user } = useAuth();
 
-  const userName = searchParams.get("name") || "Anonymous";
-  const isModerator = searchParams.get("moderator") === "true";
+  const userName = user?.name || searchParams.get("name") || "Anonymous";
+  const isModerator = Boolean(user?.isModerator);
 
   // inject CSS untuk sembunyikan toolbar default Jitsi
 useEffect(() => {

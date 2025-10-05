@@ -1,26 +1,30 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Video, User, Lock, AlertCircle } from 'lucide-react';
+import { Video, Mail, Lock, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login, isLoading } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
-    if (!username.trim() || !password.trim()) {
-      setError('Please enter both username and password');
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email and password');
       return;
     }
 
-    const success = await login(username.trim(), password);
+    const success = await login(email.trim(), password);
     if (!success) {
-      setError('Invalid username or password');
+      setError('Invalid email or password');
+      return;
     }
+    navigate('/');
   };
 
   const demoCredentials = [
@@ -46,18 +50,18 @@ const LoginPage: React.FC = () => {
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-white mb-2">
-                Username
+              <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
+                Email
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
                 <input
-                  type="text"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your username"
+                  placeholder="Enter your email"
                   disabled={isLoading}
                 />
               </div>
@@ -103,28 +107,6 @@ const LoginPage: React.FC = () => {
               )}
             </button>
           </form>
-        </div>
-
-        {/* Demo Credentials */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-          <h3 className="text-white font-medium mb-3 text-sm">Demo Accounts:</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {demoCredentials.map((cred, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setUsername(cred.username);
-                  setPassword(cred.password);
-                }}
-                className="text-left p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200 border border-white/10"
-                disabled={isLoading}
-              >
-                <div className="text-white text-xs font-medium">{cred.name}</div>
-                <div className="text-blue-200 text-xs">{cred.username}</div>
-              </button>
-            ))}
-          </div>
-          <p className="text-white/60 text-xs mt-2">Click any account to auto-fill credentials</p>
         </div>
       </div>
     </div>

@@ -16,6 +16,7 @@ export interface Room {
   isActive: boolean;
   participants: string[];
   maxParticipants?: number;
+  jwt?: string; // optional JWT returned by backend for this room
 }
 
 export interface AuthContextType {

@@ -18,6 +18,7 @@ import {
 import { Room } from '../types';
 import { mockRooms, mockUsers } from '../data/mockData';
 import { v4 as uuidv4 } from 'uuid';
+import api from '../api/axios';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -51,36 +52,55 @@ const Dashboard: React.FC = () => {
     localStorage.setItem('videomeet_rooms', JSON.stringify(updatedRooms));
   };
 
-  const handleCreateRoom = (e: React.FormEvent) => {
+  const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newRoomName.trim() || !user) return;
 
-    const newRoom: Room = {
-      id: uuidv4().substring(0, 8),
-      name: newRoomName.trim(),
-      description: newRoomDescription.trim(),
-      createdBy: user.id,
-      createdAt: new Date(),
-      isActive: true,
-      participants: [user.id],
-      maxParticipants: 50
-    };
+    try {
+      // Call backend to create a Jitsi room and get per-room JWT
+      const response = await api.get('/api/create-room');
+      const data = response.data?.data;
+      if (!data || !data.room) {
+        throw new Error('Invalid room creation response');
+      }
 
-    const updatedRooms = [...rooms, newRoom];
-    saveRooms(updatedRooms);
-    
-    setNewRoomName('');
-    setNewRoomDescription('');
-    setShowCreateModal(false);
+      const backendRoomId: string = data.room; // e.g., "room-xxxx"
+      const jwt: string | undefined = data.jwt;
+
+      const newRoom: Room = {
+        id: backendRoomId,
+        name: newRoomName.trim(),
+        description: newRoomDescription.trim(),
+        createdBy: user.id,
+        createdAt: new Date(),
+        isActive: true,
+        participants: [user.id],
+        maxParticipants: 50,
+        jwt
+      };
+
+      const updatedRooms = [...rooms, newRoom];
+      saveRooms(updatedRooms);
+
+      setNewRoomName('');
+      setNewRoomDescription('');
+      setShowCreateModal(false);
+    } catch (error) {
+      console.error('Create room error:', error);
+      alert('Gagal membuat room di server. Silakan coba lagi.');
+    }
   };
 
   const handleJoinRoom = (roomId: string, isModerator: boolean = false) => {
     if (!user) return;
-    
-    const params = new URLSearchParams({
-      name: user.name,
-      ...(isModerator && { moderator: 'true' })
-    });
+    // Find the room to retrieve its JWT if available and if feature flag is enabled
+    const room = rooms.find(r => r.id === roomId);
+    const useJwt = (import.meta.env.VITE_JITSI_USE_JWT ?? 'true') === 'true';
+    const params = new URLSearchParams({ name: user.name });
+    params.set('useJwt', useJwt ? 'true' : 'false');
+    if (useJwt && room?.jwt) {
+      params.set('jwt', room.jwt);
+    }
     navigate(`/room/${roomId}?${params.toString()}`);
   };
 

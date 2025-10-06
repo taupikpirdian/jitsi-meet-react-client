@@ -67,7 +67,10 @@ useEffect(() => {
   const initializeJitsi = () => {
     if (jitsiContainerRef.current && window.JitsiMeetExternalAPI) {
       const domain = import.meta.env.VITE_JITSI_DOMAIN;
-      const jwt = import.meta.env.VITE_JITSI_JWT;
+      const useJwtParam = searchParams.get("useJwt");
+      const useJwt = (useJwtParam ?? import.meta.env.VITE_JITSI_USE_JWT ?? "true") === "true";
+      const jwtParam = searchParams.get("jwt");
+      const jwt = useJwt ? (jwtParam || import.meta.env.VITE_JITSI_JWT) : undefined;
       const options: any = {
         roomName: roomId,
         width: "100%",
@@ -75,11 +78,11 @@ useEffect(() => {
         parentNode: jitsiContainerRef.current,
         userInfo: { displayName: userName },
         configOverwrite: {
-      prejoinPageEnabled: false, // langsung join, no prejoin screen
-        startWithAudioMuted: false,
-        startWithVideoMuted: false,
-        enableWelcomePage: false,
-        disablePrejoinAudioPreview: true,
+          prejoinPageEnabled: false, // langsung join, no prejoin screen
+          startWithAudioMuted: false,
+          startWithVideoMuted: false,
+          enableWelcomePage: false,
+          disablePrejoinAudioPreview: true,
           enableLobby: true,
           resolution: 720,
           constraints: {
@@ -95,7 +98,7 @@ useEffect(() => {
         },
       };
 
-      // Tambahkan JWT bila tersedia (untuk deployment yang memerlukan token)
+      // Tambahkan JWT bila fitur aktif dan token tersedia
       if (jwt) {
         options.jwt = jwt;
       }

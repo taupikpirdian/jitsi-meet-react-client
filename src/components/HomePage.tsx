@@ -20,6 +20,8 @@ const HomePage: React.FC = () => {
     e.preventDefault();
     if (roomId.trim() && userName.trim()) {
       const params = new URLSearchParams({ name: userName.trim() });
+      const useJwt = (import.meta.env.VITE_JITSI_USE_JWT ?? 'true') === 'true';
+      params.set('useJwt', useJwt ? 'true' : 'false');
       navigate(`/room/${roomId.trim()}?${params.toString()}`);
     }
   };
@@ -30,6 +32,8 @@ const HomePage: React.FC = () => {
       const newRoomId = Math.random().toString(36).substring(2, 10);
       setRoomId(newRoomId);
       const params = new URLSearchParams({ name: userName.trim() });
+      const useJwt = (import.meta.env.VITE_JITSI_USE_JWT ?? 'true') === 'true';
+      params.set('useJwt', useJwt ? 'true' : 'false');
       navigate(`/room/${newRoomId}?${params.toString()}`);
     }
   };

@@ -45,22 +45,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const data = response.data?.data;
       if (!data || !data.token) throw new Error('Invalid response');
 
-      // Normalize avatar URL: if backend returns a relative path, prefix with API base URL
-      const rawAvatar: string | undefined = data.profile?.avatar_url;
-      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
-      const normalizedAvatar = rawAvatar
-        ? (rawAvatar.startsWith('http')
-            ? rawAvatar
-            : rawAvatar.startsWith('/') && apiBase
-              ? `${apiBase}${rawAvatar}`
-              : rawAvatar)
-        : null;
-
+      console.log('user:', data);
       const userPayload: User = {
         id: data.user?.id,
         email: data.user?.email,
         name: data.user?.name || data.user?.username || email,
-        avatar: normalizedAvatar,
+        avatar: data.profile?.avatar_url,
         isModerator: Boolean(data.user?.is_moderator),
       };
 

@@ -34,13 +34,8 @@ const ConferenceRoom: React.FC = () => {
   const userName = user?.name || searchParams.get("name") || "Anonymous";
   const isModerator = Boolean(user?.isModerator);
 
-  // inject CSS untuk sembunyikan toolbar default Jitsi
-useEffect(() => {
-        const iframe = document.getElementById("jitsiConferenceFrame0");
-     if (iframe) {
-          (iframe as HTMLElement).style.display = "none";
-        }
-}, []);
+  // Hapus penyembunyian iframe agar UI Jitsi (toolbar mic/camera) tampil
+  // Jika ingin menyembunyikan toolbar default, gunakan config Jitsi bukan menyembunyikan seluruh iframe.
 
 
   useEffect(() => {
@@ -66,7 +61,24 @@ useEffect(() => {
 
   const initializeJitsi = () => {
     if (jitsiContainerRef.current && window.JitsiMeetExternalAPI) {
-      const domain = import.meta.env.VITE_JITSI_DOMAIN;
+      const envDomain = import.meta.env.VITE_JITSI_DOMAIN;
+      const externalApiUrlCfg =
+        import.meta.env.VITE_JITSI_EXTERNAL_API_URL ||
+        "https://meet.jit.si/external_api.js";
+      let domain = envDomain;
+      if (!domain) {
+        try {
+          const parsed = new URL(externalApiUrlCfg);
+          domain = parsed.hostname; // derive domain from external_api url if env not set
+        } catch {
+          // ignore URL parse errors
+        }
+      }
+      if (!domain) {
+        console.warn("[Jitsi] VITE_JITSI_DOMAIN is not set; defaulting to meet.jit.si");
+        domain = "meet.jit.si";
+      }
+      console.log("[Jitsi] Initializing with domain:", domain);
       const useJwtParam = searchParams.get("useJwt");
       const useJwt = (useJwtParam ?? import.meta.env.VITE_JITSI_USE_JWT ?? "true") === "true";
       const jwtParam = searchParams.get("jwt");
@@ -88,13 +100,17 @@ useEffect(() => {
           constraints: {
             video: { height: { ideal: 720, max: 720, min: 240 } },
           },
-        },
-        interfaceConfigOverwrite: {
-          TOOLBAR_BUTTONS: [], // 🔥 buang semua tombol default
-          TOOLBAR_ALWAYS_VISIBLE: false,
-          SHOW_JITSI_WATERMARK: false,
-          SHOW_BRAND_WATERMARK: false,
-          SHOW_WATERMARK_FOR_GUESTS: false,
+          // Tampilkan tombol toolbar dasar
+          toolbarButtons: [
+            "microphone",
+            "camera",
+            "desktop",
+            "fullscreen",
+            "hangup",
+            "chat",
+            "settings",
+            "tileview",
+          ],
         },
       };
 
@@ -107,11 +123,6 @@ useEffect(() => {
       setApi(jitsiApi);
 
       jitsiApi.addEventListener("videoConferenceJoined", async () => {
-        // aktifkan kamera otomatis
-        const iframe = document.getElementById("jitsiConferenceFrame0");
-        if (iframe) {
-          (iframe as HTMLElement).style.display = "none";
-        }
         // pin ke diri sendiri
         const participants = await jitsiApi.getParticipantsInfo();
         const local = participants.find((p) =>

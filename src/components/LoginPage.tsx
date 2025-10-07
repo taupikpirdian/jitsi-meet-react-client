@@ -27,13 +27,6 @@ const LoginPage: React.FC = () => {
     navigate('/');
   };
 
-  const demoCredentials = [
-    { username: 'admin', password: 'admin123', name: 'Administrator' },
-    { username: 'john', password: 'john123', name: 'John Doe' },
-    { username: 'sarah', password: 'sarah123', name: 'Sarah Wilson' },
-    { username: 'mike', password: 'mike123', name: 'Mike Johnson' }
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full">

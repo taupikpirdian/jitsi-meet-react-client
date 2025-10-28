@@ -168,7 +168,7 @@ const ConferenceRoom: React.FC = () => {
           <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
             <Video className="w-4 h-4 text-white" />
           </div>
-          <span className="text-white font-semibold">VideoMeet</span>
+          <span className="text-white font-semibold">Live Team Media Stream</span>
         </div>
       </div>
 

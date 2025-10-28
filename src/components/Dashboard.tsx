@@ -146,7 +146,7 @@ const Dashboard: React.FC = () => {
               <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
                 <Video className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">VideoMeet</h1>
+              <h1 className="text-xl font-bold text-gray-900">Live Team Media Stream</h1>
             </div>
             
             <div className="flex items-center gap-4">

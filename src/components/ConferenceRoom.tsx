@@ -165,8 +165,8 @@ const ConferenceRoom: React.FC = () => {
       {/* Logo kiri atas */}
       <div className="absolute top-4 left-4 z-40">
         <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm rounded-lg px-3 py-2">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-            <Video className="w-4 h-4 text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-0">
+            <img src="/vite.svg" alt="Logo" className="w-8 h-8" />
           </div>
           <span className="text-white font-semibold">Live Team Media Stream</span>
         </div>

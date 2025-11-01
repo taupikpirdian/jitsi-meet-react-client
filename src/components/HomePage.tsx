@@ -48,7 +48,7 @@ const HomePage: React.FC = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4">
-            <Video className="w-8 h-8 text-blue-600" />
+            <img src="/vite.svg" alt="Logo" className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Live Team Media Stream</h1>
           <p className="text-blue-200">Secure video conferencing for everyone</p>

@@ -187,8 +187,8 @@ const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                <Video className="w-5 h-5 text-white" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-0">
+                <img src="/vite.svg" alt="Logo" className="w-8 h-8" />
               </div>
               <h1 className="text-xl font-bold text-gray-900">Live Team Media Stream</h1>
             </div>
@@ -196,9 +196,10 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <img
-                  src={user.avatar}
+                  src={user.avatar || '/user.webp'}
                   alt={user.name}
                   className="w-8 h-8 rounded-full object-cover"
+                  onError={(e) => { e.currentTarget.src = '/user.webp'; }}
                 />
                 <div className="hidden sm:block">
                   <p className="text-sm font-medium text-gray-900">{user.name}</p>

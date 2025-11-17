@@ -46,11 +46,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (!data || !data.token) throw new Error('Invalid response');
 
       console.log('user:', data);
+      // Helper to normalize URL strings that may come with backticks or extra spaces from API
+      const normalizeUrlString = (u?: string | null): string | null => {
+        if (!u) return null;
+        const cleaned = String(u).replace(/`/g, '').trim();
+        return cleaned || null;
+      };
+
+      // Prefer base64 avatar when available; fallback to URL
+      const rawBase64 = data.profile?.avatar_base64 as string | undefined;
+      const rawAvatarUrl = data.profile?.avatar_url as string | undefined;
+      const avatarFromBase64 = rawBase64 && rawBase64.trim()
+        ? `data:image/jpeg;base64,${rawBase64.trim()}`
+        : null;
+      const avatarFromUrl = normalizeUrlString(rawAvatarUrl);
+
       const userPayload: User = {
         id: data.user?.id,
         email: data.user?.email,
         name: data.user?.name || data.user?.username || email,
-        avatar: data.profile?.avatar_url,
+        avatar: avatarFromBase64 ?? avatarFromUrl,
         isModerator: Boolean(data.user?.is_moderator),
       };
 

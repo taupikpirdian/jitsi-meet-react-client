@@ -11,6 +11,7 @@ import {
   MessageCircle,
   Monitor,
   UserCheck,
+  Share,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -29,6 +30,7 @@ const ConferenceRoom: React.FC = () => {
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isVideoMuted, setIsVideoMuted] = useState(false);
   const [participantCount, setParticipantCount] = useState(1);
+  const [copiedUrl, setCopiedUrl] = useState(false);
   const { user } = useAuth();
 
   const userName = user?.name || searchParams.get("name") || "Anonymous";
@@ -158,6 +160,29 @@ const ConferenceRoom: React.FC = () => {
   const toggleChat = () => api?.executeCommand("toggleChat");
   const toggleScreenShare = () => api?.executeCommand("toggleShareScreen");
 
+  const handleShareFullUrl = async () => {
+    if (!roomId) return;
+
+    const fullUrl = `${window.location.origin}/room/${roomId}?name=${encodeURIComponent(userName)}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Join Meeting Room',
+          text: `Join my meeting room: ${roomId}`,
+          url: fullUrl,
+        });
+      } else {
+        // Fallback to copying to clipboard
+        await navigator.clipboard.writeText(fullUrl);
+        setCopiedUrl(true);
+        setTimeout(() => setCopiedUrl(false), 2000);
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
   if (!roomId) return null;
 
   return (
@@ -180,6 +205,16 @@ const ConferenceRoom: React.FC = () => {
             <span className="text-white font-medium text-sm">Moderator</span>
           </div>
         )}
+        <button
+          onClick={handleShareFullUrl}
+          className="flex items-center gap-2 bg-blue-600/80 backdrop-blur-sm rounded-lg px-3 py-2 hover:bg-blue-700/80 transition-colors"
+          title="Share meeting room URL"
+        >
+          <Share className="w-4 h-4 text-white" />
+          <span className="text-white font-medium text-sm">
+            {copiedUrl ? "Copied!" : "Share"}
+          </span>
+        </button>
         <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm rounded-lg px-3 py-2">
           <Users className="w-4 h-4 text-white" />
           <span className="text-white font-medium">{participantCount}</span>

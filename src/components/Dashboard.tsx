@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Video, 
-  Plus, 
-  Users, 
-  Calendar, 
-  Settings, 
-  LogOut, 
+import {
+  Video,
+  Plus,
+  Users,
+  Calendar,
+  Settings,
+  LogOut,
   Play,
   Pause,
   Trash2,
   Edit,
   Copy,
-  Check
+  Check,
+  Share
 } from 'lucide-react';
 import { Room } from '../types';
 import { mockRooms, mockUsers } from '../data/mockData';
@@ -28,6 +29,10 @@ const Dashboard: React.FC = () => {
   const [newRoomName, setNewRoomName] = useState('');
   const [newRoomDescription, setNewRoomDescription] = useState('');
   const [copiedRoomId, setCopiedRoomId] = useState<string | null>(null);
+  // Join Meeting modal states
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinMeetingId, setJoinMeetingId] = useState('');
+  const [joinUserName, setJoinUserName] = useState('');
 
   useEffect(() => {
     // Load rooms from localStorage or use mock data
@@ -46,6 +51,11 @@ const Dashboard: React.FC = () => {
       setRooms(mockRooms);
     }
   }, []);
+
+  // Prefill join user name from authenticated user
+  useEffect(() => {
+    setJoinUserName(user?.name || '');
+  }, [user]);
 
   const saveRooms = (updatedRooms: Room[]) => {
     setRooms(updatedRooms);
@@ -104,6 +114,19 @@ const Dashboard: React.FC = () => {
     navigate(`/room/${roomId}?${params.toString()}`);
   };
 
+  // Handle Join Meeting from modal (Zoom-like)
+  const handleJoinMeeting = (e: React.FormEvent) => {
+    e.preventDefault();
+    const roomId = joinMeetingId.trim();
+    const name = joinUserName.trim();
+    if (!roomId || !name) return;
+    const params = new URLSearchParams({ name });
+    // Explicitly disable JWT for direct join via Meeting ID as requested
+    params.set('useJwt', 'false');
+    navigate(`/room/${roomId}?${params.toString()}`);
+    setShowJoinModal(false);
+  };
+
   const handleToggleRoomStatus = (roomId: string) => {
     const updatedRooms = rooms.map(room => 
       room.id === roomId ? { ...room, isActive: !room.isActive } : room
@@ -122,6 +145,27 @@ const Dashboard: React.FC = () => {
     navigator.clipboard.writeText(roomId);
     setCopiedRoomId(roomId);
     setTimeout(() => setCopiedRoomId(null), 2000);
+  };
+
+  const handleShareFullUrl = async (roomId: string) => {
+    const fullUrl = `${window.location.origin}/room/${roomId}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Join Meeting Room',
+          text: `Join my meeting room: ${roomId}`,
+          url: fullUrl,
+        });
+      } else {
+        // Fallback to copying to clipboard
+        await navigator.clipboard.writeText(fullUrl);
+        setCopiedRoomId(roomId);
+        setTimeout(() => setCopiedRoomId(null), 2000);
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
   };
 
   const getUserName = (userId: string) => {
@@ -185,7 +229,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <button
             onClick={() => setShowCreateModal(true)}
             className="p-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors group"
@@ -206,6 +250,16 @@ const Dashboard: React.FC = () => {
             <h3 className="font-semibold mb-1 text-gray-900">Joined Rooms</h3>
             <p className="text-gray-600 text-sm">{joinedRooms.length} rooms joined</p>
           </div>
+
+          {/* Join Meeting quick action */}
+          <button
+            onClick={() => setShowJoinModal(true)}
+            className="p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-400 transition-colors group"
+          >
+            <Video className="w-8 h-8 text-blue-600 mb-3 group-hover:scale-110 transition-transform" />
+            <h3 className="font-semibold mb-1 text-gray-900">Join Meeting</h3>
+            <p className="text-gray-600 text-sm">Enter Meeting ID and your name</p>
+          </button>
         </div>
 
         {/* My Rooms */}
@@ -244,6 +298,14 @@ const Dashboard: React.FC = () => {
                             <Copy className="w-3 h-3" />
                           )}
                           {copiedRoomId === room.id ? 'Copied!' : 'Copy'}
+                        </button>
+                        <button
+                          onClick={() => handleShareFullUrl(room.id)}
+                          className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                          title="Share full meeting URL"
+                        >
+                          <Share className="w-3 h-3" />
+                          Share
                         </button>
                       </div>
                     </div>
@@ -389,6 +451,63 @@ const Dashboard: React.FC = () => {
                   className="flex-1 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors"
                 >
                   Create Room
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Join Meeting Modal */}
+      {showJoinModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Join Meeting</h3>
+
+            <form onSubmit={handleJoinMeeting} className="space-y-4">
+              <div>
+                <label htmlFor="joinMeetingId" className="block text-sm font-medium text-gray-700 mb-2">
+                  Meeting ID atau Personal Link *
+                </label>
+                <input
+                  type="text"
+                  id="joinMeetingId"
+                  value={joinMeetingId}
+                  onChange={(e) => setJoinMeetingId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="room-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="joinUserName" className="block text-sm font-medium text-gray-700 mb-2">
+                  Nama Anda *
+                </label>
+                <input
+                  type="text"
+                  id="joinUserName"
+                  value={joinUserName}
+                  onChange={(e) => setJoinUserName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Masukkan nama"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowJoinModal(false)}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors"
+                >
+                  Join
                 </button>
               </div>
             </form>
